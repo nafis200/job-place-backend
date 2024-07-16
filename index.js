@@ -7,6 +7,7 @@ const jwt = require('jsonwebtoken')
 const cookieParser = require('cookie-parser')
 const port = process.env.PORT || 5000
 const cors = require('cors')
+const bcrypt = require('bcryptjs');
 // 
 const { default: axios } = require('axios'); 
 // 
@@ -48,14 +49,9 @@ const client = new MongoClient(uri, {
 
   async function run() {
     try { 
-    const userCollection = client.db('accountDB').collection('accounts')
-    const mobileCollection = client.db('accountDB').collection('mobile')
-    const surveyorCollection = client.db('accountDB').collection('surveyor')
-    const reportCollection = client.db('accountDB').collection('report')
-    const FeedCollection = client.db('accountDB').collection('feedback')
-    const responseCollection = client.db('accountDB').collection('response')
-    const paymentCollection = client.db('accountDB').collection('payment')
-
+    const userCollection = client.db('JOBDB').collection('accounts')
+    const transfer = client.db('JOBDB').collection('transfer')
+    const cashCollection = client.db('JOBDB').collection('cash')
     const verifyToken = async(req,res,next)=>{
       if(!req.headers.authorization){
            return res.status(401).send({messsage:'forbidden access'})
@@ -79,7 +75,6 @@ const client = new MongoClient(uri, {
 
     app.post('/jwt',async(req,res)=>{
        const user = req.body 
-       console.log(user)
        const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET ,{expiresIn: '1000h'})
        res
        .cookie('token',token,cookieOptions)
@@ -115,9 +110,61 @@ const client = new MongoClient(uri, {
     })
    
     app.post('/users',async(req,res)=>{
-      const user = req.body;
-      res.send({user})
+      const {name,phone,email,pin,status,role,balanced} = req.body
+      const hash_password = await bcrypt.hash(pin,10) 
+      const userItem = {
+           name,phone,email,pin:hash_password,status,role,balanced
+      }
+      const result = await userCollection.insertOne(userItem)
+      res.send(result)
  })
+
+ app.post('/transfer',async(req,res)=>{
+      const user = req.body
+      const result = await transfer.insertOne(user) 
+      res.send(result)
+ })
+
+ app.post('/cash',async(req,res)=>{
+       const user = req.body 
+       const result = await cashCollection.insertOne(user)
+       res.send(result)
+ })
+
+  app.post('/loginuser',async(req,res)=>{
+      const {email,pin} = req.body
+      const query = {email: email}
+      const user = await userCollection.findOne(query)
+      const hashedPassword = user?.pin
+      const isMatch = await bcrypt.compare(pin, hashedPassword);
+      res.send(isMatch)
+  })
+
+
+  app.patch('/user/:email', async (req, res) => {
+    const user = req.body;
+    const email = req.params.email;
+    const { balanced } = user;
+    const query = { email: email };
+  
+    const updateDoc = {
+      $set: { balanced }
+    };
+  
+      const result = await userCollection.updateOne(query, updateDoc);
+      if (result.modifiedCount === 1) {
+        res.send({message: 'User balance updated successfully' });
+      } else {
+        res.send({ message: 'User not found or balance not changed' });
+      }
+  });
+
+  app.get('/users/:email',async(req,res)=>{
+    const email = req.params.email
+    const query = {email: email}
+    const result = await userCollection.findOne(query)
+    res.send(result)
+  })
 
  
       console.log("Pinged your deployment. You successfully connected to MongoDB!");
