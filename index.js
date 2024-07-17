@@ -52,6 +52,7 @@ const client = new MongoClient(uri, {
     const userCollection = client.db('JOBDB').collection('accounts')
     const transfer = client.db('JOBDB').collection('transfer')
     const cashCollection = client.db('JOBDB').collection('cash')
+    const agentCollection = client.db('JOBDB').collection('agent')
     const verifyToken = async(req,res,next)=>{
       if(!req.headers.authorization){
            return res.status(401).send({messsage:'forbidden access'})
@@ -131,6 +132,7 @@ const client = new MongoClient(uri, {
        res.send(result)
  })
 
+
   app.post('/loginuser',async(req,res)=>{
       const {email,pin} = req.body
       const query = {email: email}
@@ -165,6 +167,73 @@ const client = new MongoClient(uri, {
     const result = await userCollection.findOne(query)
     res.send(result)
   })
+
+  app.get('/item/:email',async(req,res)=>{
+    const email = req.params.email
+    const query = {email: email}
+    const cursor = transfer.find(query)
+    const result = await cursor.toArray()
+     res.send(result)
+  })
+
+  app.get('/cash/:email',async(req,res)=>{
+    const email = req.params.email
+    const query = {status: email}
+    const cursor = transfer.find(query)
+    const result = await cursor.toArray()
+    res.send(result)
+  })
+
+  app.get('/mobile', async (req, res) => {
+    const cursor = cashCollection.find();
+    const result = await cursor.toArray();
+    res.send(result);
+});
+
+app.patch('/users/admin/:id',async(req,res)=>{
+  const id = req.params.id; 
+  const filter = {_id : new ObjectId(id)}
+  const updateDoc = {
+     $set:{
+        status: 'complete'
+     }
+  }
+  const result = await cashCollection.updateOne(filter,updateDoc)
+  res.send(result)
+ })
+
+ app.patch('/updatemoney',async(req,res)=>{
+        const user = req.body;
+        const {id,customar,agent,money,method} = user 
+        console.log(money)
+        const filter = {_id : new ObjectId(id)}
+        const filter1 = {email : customar}
+        const filter2 = {email : agent}
+        const updateDoc = {
+        $set:{
+        status: 'complete'
+        }
+      }
+      const updateDoc1 = {
+        $inc: {
+           balanced:money
+        }
+      }
+      const updateDoc2 = {
+        $inc: {
+           balanced:-money
+        }
+      }
+   const result = await cashCollection.updateOne(filter,updateDoc)
+   const result1 = await userCollection.updateOne(filter1,updateDoc1)
+   const result2 = await userCollection.updateOne(filter2,updateDoc2)
+   const result3 = await agentCollection.insertOne(user)
+   res.send(result)
+ })
+  
+
+  
+
 
  
       console.log("Pinged your deployment. You successfully connected to MongoDB!");
