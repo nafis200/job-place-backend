@@ -190,6 +190,26 @@ const client = new MongoClient(uri, {
     res.send(result);
 });
 
+app.get('/agent', async (req, res) => {
+  const cursor = agentCollection.find();
+  const result = await cursor.toArray();
+  res.send(result);
+});
+
+app.get('/transfer', async (req, res) => {
+  const cursor = transfer.find();
+  const result = await cursor.toArray();
+  res.send(result);
+});
+
+app.get('/admin', async (req, res) => {
+  const cursor = userCollection.find();
+  const result = await cursor.toArray();
+  res.send(result);
+});
+
+
+
 app.patch('/users/admin/:id',async(req,res)=>{
   const id = req.params.id; 
   const filter = {_id : new ObjectId(id)}
@@ -201,6 +221,21 @@ app.patch('/users/admin/:id',async(req,res)=>{
   const result = await cashCollection.updateOne(filter,updateDoc)
   res.send(result)
  })
+
+ app.patch('/admined/:email',async(req,res)=>{
+  const email = req.params.email; 
+  const filter = {email:email}
+  const updateDoc = {
+     $set:{
+        status: 'complete',
+        balanced: 10000,
+        role:"agent"
+     }
+  }
+  const result = await userCollection.updateOne(filter,updateDoc)
+  res.send(result)
+ })
+
 
  app.patch('/updatemoney',async(req,res)=>{
         const user = req.body;
@@ -257,9 +292,19 @@ const result = await cashCollection.updateOne(filter,updateDoc)
 const result1 = await userCollection.updateOne(filter1,updateDoc1)
 const result2 = await userCollection.updateOne(filter2,updateDoc2)
 const result3 = await agentCollection.insertOne(user)
+const result4 = await transfer.insertOne(user)
 res.send(result)
 })
 
+app.delete('/feedback/:id',async(req,res)=>{
+  const id = req.params.id
+  const query = {
+     _id: new ObjectId(id)
+  }
+  const result = await userCollection.deleteOne(query)
+  res.send(result)
+
+})
   
 
 
