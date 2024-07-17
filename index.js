@@ -231,6 +231,34 @@ app.patch('/users/admin/:id',async(req,res)=>{
    res.send(result)
  })
   
+ app.patch('/updatemoney1',async(req,res)=>{
+  const user = req.body;
+  const {id,customar,agent,money,method,charge} = user 
+  console.log(money)
+  const filter = {_id : new ObjectId(id)}
+  const filter1 = {email : customar}
+  const filter2 = {email : agent}
+  const updateDoc = {
+  $set:{
+  status: 'complete'
+  }
+}
+const updateDoc1 = {
+  $inc: {
+     balanced:-money
+  }
+}
+const updateDoc2 = {
+  $inc: {
+     balanced:charge
+  }
+}
+const result = await cashCollection.updateOne(filter,updateDoc)
+const result1 = await userCollection.updateOne(filter1,updateDoc1)
+const result2 = await userCollection.updateOne(filter2,updateDoc2)
+const result3 = await agentCollection.insertOne(user)
+res.send(result)
+})
 
   
 
