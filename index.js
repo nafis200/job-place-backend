@@ -14,6 +14,9 @@ const { default: axios } = require('axios');
 app.use(cors({
    origin: [
      'http://localhost:5173',
+     'https://bkash-app-920d1.firebaseapp.com',
+      'https://bkash-app-920d1.web.app'
+
    ],
    credentials: true
 }))
@@ -202,10 +205,22 @@ app.get('/transfer', async (req, res) => {
   res.send(result);
 });
 
-app.get('/admin', async (req, res) => {
-  const cursor = userCollection.find();
-  const result = await cursor.toArray();
-  res.send(result);
+app.get('/admin/:id', async (req, res) => {
+  const id = req.params.id
+  if(id === "all")
+  {
+    const cursor = userCollection.find();
+    const result = await cursor.toArray();
+    res.send(result);
+  }
+  else{
+    const result = await userCollection.find({ name: id }).toArray();
+    
+    if (result.length === 0) {
+      return res.status(404).send({ message: 'Admin not found' });
+    }
+    res.send(result)
+  }
 });
 
 
