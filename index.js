@@ -114,7 +114,6 @@ res.send(result)
 app.get('/search/:email', async (req, res) => {
   const email = req.params.email
   const product = await dataCollection.findOne({ brandName: email });
- console.log(product)
         if (product) {
             res.send(product);
         } else {
@@ -123,12 +122,25 @@ app.get('/search/:email', async (req, res) => {
 });
 
 app.post('/search', async (req, res) => {
-      const { brandName, price, category } = req.body;
-      let query = {};
-      if (brandName) query.brandName = brandName;
-      if (price !== undefined) query.price = price;
-      if (category) query.category = category;
-      console.log(req.body,query)
+  try {
+    const { brandName, price, category } = req.body;
+    let query = {};
+
+    if (brandName) query.brandName = brandName;
+    if (price !== undefined) query.price = price;
+    if (category) query.category = category;
+
+    const cursor = dataCollection.find(query)
+    const products = await cursor.toArray();
+
+    if (products.length > 0) {
+      res.send(products);
+    } else {
+      res.send({ brandName: 'Product not found' });
+    }
+  } catch (error) {
+    res.send({ brandName: 'Product not found' });
+  }
 });
 
 
