@@ -105,11 +105,33 @@ app.get('/productsCount',async(req,res)=>{
 app.get('/products',async(req,res)=>{
 const page = parseInt(req.query.page)
 const size = parseInt(req.query.size)
-console.log(page)
 const cursor = dataCollection.find()
 const result = await cursor.skip(page * size).limit(size).toArray()
 res.send(result)
 })
+
+
+app.get('/search/:email', async (req, res) => {
+  const email = req.params.email
+  const product = await dataCollection.findOne({ brandName: email });
+ console.log(product)
+        if (product) {
+            res.send(product);
+        } else {
+            res.send({ brandName: 'Product not found' });
+        }
+});
+
+app.post('/search', async (req, res) => {
+      const { brandName, price, category } = req.body;
+      let query = {};
+      if (brandName) query.brandName = brandName;
+      if (price !== undefined) query.price = price;
+      if (category) query.category = category;
+      console.log(req.body,query)
+});
+
+
 
  
 
