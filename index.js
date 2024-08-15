@@ -121,6 +121,7 @@ app.get('/search/:email', async (req, res) => {
         }
 });
 
+
 app.post('/search', async (req, res) => {
   try {
     const { brandName, price, category } = req.body;
