@@ -113,12 +113,16 @@ res.send(result)
 
 app.get('/search/:email', async (req, res) => {
   const email = req.params.email
-  const product = await dataCollection.findOne({ brandName: email });
-        if (product) {
-            res.send(product);
-        } else {
-            res.send({ brandName: 'Product not found' });
-        }
+    let query = {};
+    if (email) query.brandName = email;
+    const cursor = dataCollection.find(query)
+    const products = await cursor.toArray();
+    if (products.length > 0) {
+      res.send(products);
+    } else {
+      res.send({ brandName: 'Product not found' });
+    }
+ 
 });
 
 
