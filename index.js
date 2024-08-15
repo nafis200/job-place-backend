@@ -120,7 +120,7 @@ app.get('/search/:email', async (req, res) => {
     if (products.length > 0) {
       res.send(products);
     } else {
-      res.send({ brandName: 'Product not found' });
+      res.send([{ brandName: 'Product not found' }]);
     }
  
 });
@@ -141,10 +141,10 @@ app.post('/search', async (req, res) => {
     if (products.length > 0) {
       res.send(products);
     } else {
-      res.send({ brandName: 'Product not found' });
+      res.send([{ brandName: 'Product not found' }]);
     }
   } catch (error) {
-    res.send({ brandName: 'Product not found' });
+    res.send([{ brandName: 'Product not found' }]);
   }
 });
 
